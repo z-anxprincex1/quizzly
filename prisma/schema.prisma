@@ -1,0 +1,47 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String        @id @default(uuid())
+  email         String?       @unique
+  passwordHash  String?       // Nullable for guests
+  username      String
+  isGuest       Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  participants  Participant[]
+}
+
+model QuizSession {
+  id          String        @id @default(uuid())
+  topic       String
+  createdAt   DateTime      @default(now())
+  questions   Question[]
+  players     Participant[]
+  theme       Json?         // Custom UI theme configurations
+}
+
+model Question {
+  id            String      @id @default(uuid())
+  quizSessionId String
+  quizSession   QuizSession @relation(fields: [quizSessionId], references: [id])
+  questionText  String      @db.Text
+  options       Json        // Array of string choices
+  correctAnswer String      @db.Text
+  explanation   String      @db.Text
+}
+
+model Participant {
+  id            String      @id @default(uuid())
+  quizSessionId String
+  quizSession   QuizSession @relation(fields: [quizSessionId], references: [id])
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  score         Int         @default(0)
+  isHost        Boolean     @default(false)
+}

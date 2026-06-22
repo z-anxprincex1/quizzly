@@ -1,0 +1,73 @@
+# Dependencies
+node_modules/
+/node_modules
+*/node_modules/
+.pnp
+.pnp.js
+
+# Testing
+/coverage
+*/coverage/
+
+# Next.js Build Outputs
+.next/
+/frontend/.next/
+out/
+/frontend/out/
+
+# Production / Build Bundles
+build/
+dist/
+/backend/dist/
+/backend/build/
+
+# Debug and Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+
+# Environment Files (Credentials / Secrets)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+backend/.env
+frontend/.env
+ai-service/.env
+
+# Python (AI Service) cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+ENV/
+env/
+ai-service/venv/
+ai-service/.venv/
+ai-service/__pycache__/
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Docker / Local Dev Database Cache
+mysql-data/
+mysql/
+
+.agents/
