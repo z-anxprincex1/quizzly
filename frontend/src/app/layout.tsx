@@ -5,6 +5,10 @@ import "katex/dist/katex.min.css";
 export const metadata: Metadata = {
   title: "quizzly",
   description: "Make an AI quiz, invite your friends, and find out who was bluffing.",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({
