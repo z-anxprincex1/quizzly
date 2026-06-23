@@ -138,7 +138,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
 
     socket.on('disconnect', () => {
       if (!isCurrentSocket()) return;
-      set({ isConnected: false, hasJoinedRoom: false, socket: null });
+      set({ isConnected: false, hasJoinedRoom: false });
     });
 
     socket.on('presence_update', (players: Player[]) => {

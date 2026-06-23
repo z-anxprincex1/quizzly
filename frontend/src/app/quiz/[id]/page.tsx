@@ -119,6 +119,57 @@ export default function QuizRoomPage() {
   const [generatingStep, setGeneratingStep] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  // Inactivity tracking (2 mins idle + 1 min warning)
+  const [isIdle, setIsIdle] = useState(false);
+  const [idleCountdown, setIdleCountdown] = useState(60);
+
+  useEffect(() => {
+    // 120000ms = 2 minutes
+    const IDLE_TIMEOUT_MS = 120000;
+    let idleTimer: any;
+
+    const resetIdleTimer = () => {
+      window.clearTimeout(idleTimer);
+      setIsIdle(false);
+      setIdleCountdown(60);
+      idleTimer = window.setTimeout(() => {
+        setIsIdle(true);
+      }, IDLE_TIMEOUT_MS);
+    };
+
+    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+    events.forEach(event => {
+      window.addEventListener(event, resetIdleTimer);
+    });
+
+    resetIdleTimer();
+
+    return () => {
+      window.clearTimeout(idleTimer);
+      events.forEach(event => {
+        window.removeEventListener(event, resetIdleTimer);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isIdle) return;
+
+    const interval = window.setInterval(() => {
+      setIdleCountdown(prev => {
+        if (prev <= 1) {
+          window.clearInterval(interval);
+          store.disconnect();
+          router.push('/');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [isIdle, store, router]);
+
   useEffect(() => {
     getCurrentUser().then((currentUser) => {
       if (!currentUser) {
@@ -391,7 +442,7 @@ export default function QuizRoomPage() {
       {/* Lobby branding for guests and for hosts after submitting a prompt */}
       {store.hasJoinedRoom && !store.gameStarted && (!store.isHost || !showSlogan) && (
         <div
-          className="fixed top-28 sm:top-4 left-1/2 -translate-x-1/2 z-40 text-3xl sm:text-4xl font-black text-white tracking-tighter lowercase whitespace-nowrap"
+          className="fixed top-20 sm:top-4 left-1/2 -translate-x-1/2 z-40 text-2xl sm:text-4xl font-black text-white tracking-tighter lowercase whitespace-nowrap"
           style={{ textShadow: '4px 4px 0 #a78bfa' }}
         >
           quizzly!
@@ -402,14 +453,14 @@ export default function QuizRoomPage() {
       <div className="fixed top-4 right-4 z-50 flex flex-col items-end">
         <div 
           onClick={() => setShowLogout(!showLogout)}
-          className="bg-black/80 backdrop-blur border border-white/10 px-4 py-2 text-xs text-white cursor-pointer hover:border-white/20 select-none flex items-center gap-2 rounded-none"
+          className="bg-black/80 backdrop-blur border border-white/10 px-4 py-2 text-xs text-white cursor-pointer hover:border-white/20 select-none flex items-center gap-2 rounded-none max-w-[150px] sm:max-w-xs"
           title="Click to toggle logout"
         >
           <div
-            className="w-1.5 h-1.5 animate-pulse"
+            className="w-1.5 h-1.5 animate-pulse shrink-0"
             style={{ backgroundColor: getPlayerColor(user?.id) }}
           ></div>
-          <span className="font-semibold" style={{ color: getPlayerColor(user?.id) }}>
+          <span className="font-semibold truncate block" style={{ color: getPlayerColor(user?.id) }}>
             {getDisplayUsername(user?.id, user?.username || 'Player')}
           </span>
         </div>
@@ -483,10 +534,10 @@ export default function QuizRoomPage() {
             const hasSubmitted = store.answeredUserIds.includes(player.userId);
             const isOnline = player.isOnline;
             return (
-              <div key={player.userId} className="flex justify-between items-center gap-4 text-sm">
-                <div className="flex items-center gap-2 truncate" title={getDisplayUsername(player.userId, player.username)}>
+              <div key={player.userId} className="flex justify-between items-center gap-2 text-xs sm:text-sm min-w-0">
+                <div className="flex items-center gap-2 min-w-0 truncate" title={getDisplayUsername(player.userId, player.username)}>
                   <span className={`w-2 h-2 rounded-none shrink-0 ${isOnline ? 'bg-emerald-500' : 'bg-zinc-700'}`} />
-                  <span className="font-semibold truncate" style={{ color: getPlayerColor(player.userId) }}>
+                  <span className="font-semibold truncate block max-w-[110px] sm:max-w-[150px]" style={{ color: getPlayerColor(player.userId) }}>
                     {getDisplayUsername(player.userId, player.username)}
                   </span>
                   {player.isHost && (
@@ -558,7 +609,15 @@ export default function QuizRoomPage() {
         )}
 
         {/* Dynamic Center Panel */}
-        <div className={`flex-grow overflow-y-auto p-8 flex flex-col items-center justify-center max-w-2xl mx-auto w-full ${store.gameStarted && !store.isGameOver ? 'pb-64' : 'pb-24'}`}>
+        <div className={`flex-grow overflow-y-auto no-scrollbar px-4 sm:px-8 py-8 flex flex-col items-center max-w-2xl mx-auto w-full ${
+          store.gameStarted 
+            ? 'justify-start pt-20 sm:pt-28' 
+            : 'justify-center'
+        } ${
+          store.gameStarted && !store.isGameOver 
+            ? 'pb-32 sm:pb-44' 
+            : 'pb-20 sm:pb-24'
+        }`}>
           
           {/* LOBBY / WAITING STATE */}
           {!store.gameStarted && (
@@ -623,9 +682,12 @@ export default function QuizRoomPage() {
                     <div className="text-center space-y-4">
                       <button
                         onClick={() => store.startGame(sessionId)}
-                        className="px-10 py-5 bg-white text-black hover:bg-gray-200 text-base font-black uppercase tracking-widest transition-all cursor-pointer shadow-lg rounded-none border-2 border-white hover:border-gray-200"
+                        className="relative group px-10 py-5 bg-black text-white hover:text-black border-2 border-white text-base font-black uppercase tracking-widest cursor-pointer rounded-none shadow-[6px_6px_0_#a78bfa] hover:shadow-[0_0_25px_rgba(167,139,250,0.6)] active:translate-x-1 active:translate-y-1 active:shadow-[2px_2px_0_#a78bfa] transition-all duration-200 overflow-hidden"
                       >
-                        start quiz
+                        <span className="absolute inset-0 bg-[#a78bfa] -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out z-0" />
+                        <span className="relative z-10 flex items-center justify-center gap-2">
+                          ⚡ start quiz ⚡
+                        </span>
                       </button>
                       <p className="text-[10px] text-gray-500 lowercase">
                         quiz is ready. click start to initiate the game for all players.
@@ -689,10 +751,10 @@ export default function QuizRoomPage() {
                 </div>
                 <div className="divide-y divide-white/5">
                   {store.leaderboard.map((p, idx) => (
-                    <div key={p.userId} className="flex justify-between items-center px-4 py-3 text-xs">
-                      <div className="flex items-center gap-2">
+                    <div key={p.userId} className="flex justify-between items-center px-4 py-3 text-xs gap-2 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0 truncate">
                         <span className="font-bold text-gray-500">#{idx + 1}</span>
-                        <span className="font-semibold" style={{ color: getPlayerColor(p.userId) }}>
+                        <span className="font-semibold truncate block max-w-[120px] sm:max-w-[200px]" style={{ color: getPlayerColor(p.userId) }}>
                           {getDisplayUsername(p.userId, p.username)}
                         </span>
                         {p.isHost && <span className="text-[8px] border border-white/20 text-gray-400 px-1 rounded-none">Host</span>}
@@ -914,14 +976,14 @@ export default function QuizRoomPage() {
                 }`}
               >
                 {activeTab === 'prompt' ? (
-                  <form onSubmit={handleGenerateOrJoinQuiz} className="flex gap-2 items-center w-full">
+                  <form onSubmit={handleGenerateOrJoinQuiz} className="flex gap-2 items-center w-full min-w-0">
                     <input
                       type="text"
                       disabled={generating || !store.isHost}
                       placeholder={!store.isHost ? "Only the host can use the quiz prompt..." : store.gameStarted && !store.isGameOver ? "Quiz active — wait until results to generate again..." : "Ask AI to generate a quiz..."}
                       value={prompt}
                       onChange={(e) => setPrompt(e.target.value)}
-                      className="flex-grow bg-transparent px-3 py-2 text-xs text-white placeholder:text-gray-600 focus:outline-none animate-fadeIn disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex-grow min-w-0 bg-transparent px-3 py-2 text-xs text-white placeholder:text-gray-600 focus:outline-none animate-fadeIn disabled:cursor-not-allowed disabled:opacity-50"
                     />
                     <button
                       type="submit"
@@ -952,13 +1014,13 @@ export default function QuizRoomPage() {
                 }`}
               >
                 {activeTab === 'chat' ? (
-                  <form onSubmit={handleSendChatMessage} className="flex items-center w-full">
+                  <form onSubmit={handleSendChatMessage} className="flex items-center w-full min-w-0">
                     <input
                       type="text"
                       placeholder="Type a message and press Enter..."
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      className="flex-grow bg-transparent px-3 py-2 text-xs text-white placeholder:text-gray-600 focus:outline-none animate-fadeIn"
+                      className="flex-grow min-w-0 bg-transparent px-3 py-2 text-xs text-white placeholder:text-gray-600 focus:outline-none animate-fadeIn"
                     />
                     <button
                       type="submit"
@@ -1015,6 +1077,30 @@ export default function QuizRoomPage() {
                 Yes, continue
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Inactivity Warning Popup */}
+      {isIdle && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md px-6">
+          <div className="w-full max-w-md border border-white/20 bg-[#09090b] p-6 text-center shadow-2xl rounded-none">
+            <h2 className="text-2xl font-black text-white lowercase">Are you still here?</h2>
+            <p className="mt-4 text-xs leading-relaxed text-gray-400">
+              We noticed you've been inactive. You will be automatically disconnected and returned to the home screen in:
+            </p>
+            <div className="my-6 text-5xl font-black text-purple-400 animate-pulse font-mono">
+              {idleCountdown}s
+            </div>
+            <button
+              onClick={() => {
+                setIsIdle(false);
+                setIdleCountdown(60);
+              }}
+              className="w-full bg-white text-black hover:bg-gray-200 py-3 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer rounded-none border border-white hover:border-gray-200"
+            >
+              I'm still here
+            </button>
           </div>
         </div>
       )}

@@ -14,6 +14,7 @@ function RootAuthPageContent() {
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [lobbyCode, setLobbyCode] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -44,12 +45,9 @@ function RootAuthPageContent() {
         
         {/* Logo and Minimal Branding */}
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-black tracking-tighter text-white mb-2 lowercase pb-3" style={{ textShadow: '3px 3px 0 #a78bfa' }}>
+          <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white mb-2 lowercase pb-3" style={{ textShadow: '4px 4px 0 #a78bfa' }}>
             quizzly!
           </h1>
-          <p className="text-[10px] text-gray-500 tracking-widest uppercase">
-            Minimal Multiplayer Assessment
-          </p>
         </div>
 
         {/* Input Card */}
@@ -64,7 +62,7 @@ function RootAuthPageContent() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="username" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                Guest Username
+                username
               </label>
               <div className="relative flex items-center">
                 <span className="absolute left-3 text-gray-500">
@@ -74,7 +72,7 @@ function RootAuthPageContent() {
                   type="text"
                   name="username"
                   id="username"
-                  placeholder="Anonymous Scholar (Optional)"
+                  placeholder="goofy nickname (optional)..."
                   className="w-full bg-black border border-white/10 py-2.5 pl-9 pr-3 text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-white transition-all rounded-none"
                   maxLength={25}
                 />
@@ -89,7 +87,9 @@ function RootAuthPageContent() {
                 type="text"
                 name="lobbyCode"
                 id="lobbyCode"
-                placeholder="Paste Lobby Code UUID to join..."
+                value={lobbyCode}
+                onChange={(e) => setLobbyCode(e.target.value)}
+                placeholder="paste lobby code..."
                 className="w-full bg-black border border-white/10 py-2.5 px-3 text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-white transition-all rounded-none"
               />
             </div>
@@ -102,20 +102,17 @@ function RootAuthPageContent() {
               {loading ? (
                 <>
                   <Loader2 className="animate-spin" size={14} />
-                  Entering Lobby...
+                  {lobbyCode.trim() ? 'Joining Game...' : 'Creating Session...'}
                 </>
               ) : (
-                'Join as Guest'
+                lobbyCode.trim() ? 'Join the game' : 'Create a new session'
               )}
             </button>
           </form>
 
         </div>
 
-        {/* System Status Footer */}
-        <div className="mt-8 text-center text-[9px] text-gray-600">
-          <p className="uppercase tracking-widest">Active Services: Next.js + MySQL + Socket.io + Gemini 3.5 AI</p>
-        </div>
+
 
       </div>
     </main>
