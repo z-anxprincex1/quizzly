@@ -10,7 +10,6 @@ function RootAuthPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // If redirect query param is not specified or is root /, default to /dashboard
   const redirectUrl = searchParams.get('redirect') || '/dashboard';
 
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +43,6 @@ function RootAuthPageContent() {
     <main className="min-h-screen bg-black flex items-center justify-center px-4 py-3 sm:p-6 font-mono text-white overflow-y-auto">
       <div className="w-full max-w-[20rem] sm:max-w-sm">
         
-        {/* Logo and Minimal Branding */}
         <div className="text-center mb-3 sm:mb-8">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter text-white mb-1 lowercase pb-1 sm:pb-3" style={{ textShadow: '3px 3px 0 #a78bfa' }}>
             quizzly!
@@ -54,7 +52,6 @@ function RootAuthPageContent() {
         <form onSubmit={handleSubmit} className="space-y-1.5 sm:space-y-4">
           <AvatarCustomizer />
 
-          {/* Input Card */}
           <div className="border border-white/10 bg-[#09090b] p-3 sm:p-6 rounded-none shadow-none space-y-2 sm:space-y-4">
             
             {error && (

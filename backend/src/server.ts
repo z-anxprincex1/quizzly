@@ -19,20 +19,17 @@ const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'quizly-jwt-secret-key-super-secure-change-in-prod';
 
-// Health Check
 app.get('/health', (req, res) => {
   res.json({ status: 'healthy', service: 'quizly-backend' });
 });
 
-// Configure Socket.io with CORS
 const io = new Server(server, {
   cors: {
-    origin: '*', // Allow all origins for local development testing
+    origin: '*',
     methods: ['GET', 'POST'],
   }
 });
 
-// Authentication middleware for WebSockets
 io.use((socket, next) => {
   const token = socket.handshake.auth.token || socket.handshake.headers['authorization'];
   if (!token) {
@@ -50,7 +47,6 @@ io.use((socket, next) => {
   }
 });
 
-// Register real-time gameplay and presence handlers
 registerSocketHandlers(io, prisma);
 
 server.listen(PORT, () => {

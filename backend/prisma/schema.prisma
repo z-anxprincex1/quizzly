@@ -10,7 +10,7 @@ generator client {
 model User {
   id            String        @id @default(uuid())
   email         String?       @unique
-  passwordHash  String?       // Nullable for guests
+  passwordHash  String?
   username      String
   isGuest       Boolean       @default(false)
   createdAt     DateTime      @default(now())
@@ -24,7 +24,7 @@ model QuizSession {
   createdAt   DateTime      @default(now())
   questions   Question[]
   players     Participant[]
-  theme       Json?         // Custom UI theme configurations
+  theme       Json?
 }
 
 model Question {
@@ -32,7 +32,7 @@ model Question {
   quizSessionId String
   quizSession   QuizSession @relation(fields: [quizSessionId], references: [id])
   questionText  String      @db.Text
-  options       Json        // Array of string choices
+  options       Json
   correctAnswer String      @db.Text
   explanation   String      @db.Text
 }

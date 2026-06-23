@@ -39,7 +39,7 @@
 }
 
 html {
-  font-size: 1.5rem; /* 24px default, even larger for better readability */
+  font-size: 1.5rem;
 }
 
 body {
@@ -60,7 +60,6 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em;
 }
 
-/* Glassmorphism Styles */
 .glass-panel {
   background: rgba(17, 18, 25, 0.65);
   backdrop-filter: blur(16px);
@@ -83,7 +82,6 @@ h1, h2, h3, h4, h5, h6 {
   outline: none;
 }
 
-/* Glow Card Effect */
 .glow-card {
   position: relative;
   overflow: hidden;
@@ -113,7 +111,6 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.25);
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -131,7 +128,6 @@ h1, h2, h3, h4, h5, h6 {
   background: #2b2e40;
 }
 
-/* Micro-Animations */
 @keyframes float {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-8px); }
@@ -160,7 +156,6 @@ h1, h2, h3, h4, h5, h6 {
   animation: chat-message-lifetime 5s ease-out forwards;
 }
 
-/* Grid overlay background */
 .bg-grid {
   background-size: 40px 40px;
   background-image: 
@@ -168,11 +163,10 @@ h1, h2, h3, h4, h5, h6 {
     linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
 }
 
-/* Hide scrollbars utility */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

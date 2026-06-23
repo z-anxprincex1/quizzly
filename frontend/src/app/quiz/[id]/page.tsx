@@ -46,13 +46,11 @@ export default function QuizRoomPage() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  // Chat/Prompt input states
   const [chatInput, setChatInput] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
   const playersButtonRef = useRef<HTMLButtonElement>(null);
   const playersListRef = useRef<HTMLDivElement>(null);
 
-  // Bind state store
   const store = useSocketStore();
 
   const lobbyDisplayNames = useMemo(() => {
@@ -101,7 +99,6 @@ export default function QuizRoomPage() {
   const getPlayerColor = (userId: string | undefined) =>
     (userId && lobbyPlayerColors.get(userId)) || 'hsl(263 85% 68%)';
   
-  // UI states
   const [showLogout, setShowLogout] = useState(false);
   const [showPlayers, setShowPlayers] = useState(false);
   const [showSlogan, setShowSlogan] = useState(true);
@@ -115,18 +112,15 @@ export default function QuizRoomPage() {
   const [roundAdvanceSeconds, setRoundAdvanceSeconds] = useState(0);
   const [keyboardLift, setKeyboardLift] = useState(0);
 
-  // AI Quiz generation states
   const [prompt, setPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
   const [generatingStep, setGeneratingStep] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // Inactivity tracking (2 mins idle + 1 min warning)
   const [isIdle, setIsIdle] = useState(false);
   const [idleCountdown, setIdleCountdown] = useState(60);
 
   useEffect(() => {
-    // 120000ms = 2 minutes
     const IDLE_TIMEOUT_MS = 120000;
     let idleTimer: any;
 
@@ -226,7 +220,6 @@ export default function QuizRoomPage() {
     return () => window.removeEventListener('beforeunload', disconnectBeforeWindowCloses);
   }, []);
 
-  // Scroll to bottom of chat list on new message
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [store.chatMessages, activeTab]);
@@ -393,7 +386,6 @@ export default function QuizRoomPage() {
 
     setError(null);
 
-    // 1. Check if the input is a UUID (Lobby Room Code)
     const lobbyCode = getLobbyCodeFromInput(trimmedInput);
     if (lobbyCode) {
       router.push(`/quiz/${lobbyCode}`);
@@ -405,7 +397,6 @@ export default function QuizRoomPage() {
       return;
     }
 
-    // Only host can trigger AI quiz generation
     if (!store.isHost) return;
 
     setShowSlogan(false);
@@ -428,7 +419,7 @@ export default function QuizRoomPage() {
         throw new Error(errorData.detail || "Failed to communicate with AI worker.");
       }
 
-      const generatedData = await response.json(); // { topic: string, questions: [...], theme: {...} }
+      const generatedData = await response.json();
 
       setGeneratingStep("Writing quiz questions to database...");
       const dbResult = await saveQuizQuestionsForSession(sessionId, generatedData.topic, generatedData.questions, generatedData.theme);
@@ -440,7 +431,6 @@ export default function QuizRoomPage() {
       setGenerating(false);
       setPrompt('');
       
-      // Notify other lobby players that the quiz has been generated!
       store.notifyQuizGenerated(sessionId);
 
     } catch (err: any) {
@@ -466,12 +456,9 @@ export default function QuizRoomPage() {
   return (
     <main className="h-screen bg-black flex flex-col font-mono text-gray-200 overflow-hidden relative select-none">
 
-      {/* Floating session controls */}
       <header className="fixed left-0 right-0 top-0 z-50 flex h-24 items-start justify-between px-3 pt-3 pointer-events-none select-none">
         
-        {/* Left Controls: New Session & Copy Code */}
         <div className="flex flex-col items-start gap-2 pointer-events-auto">
-          {/* New Session Button */}
           <button
             onClick={handleNewSessionRequest}
             className="flex items-center justify-center bg-white text-black hover:bg-gray-200 h-8 w-8 cursor-pointer rounded-none border border-white"
@@ -480,7 +467,6 @@ export default function QuizRoomPage() {
             <span className="font-bold text-base select-none">+</span>
           </button>
 
-          {/* Lobby Code Copy Button */}
           <button
             onClick={copyRoomCode}
             className="group flex h-8 w-8 items-center justify-start gap-1.5 overflow-hidden rounded-none border border-white/10 bg-black/75 text-[10px] font-bold uppercase text-white shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-[border-color,background-color,color] duration-300 hover:w-fit hover:border-white hover:bg-white hover:text-black focus-visible:w-fit focus-visible:border-white focus-visible:bg-white focus-visible:text-black cursor-pointer"
@@ -496,7 +482,6 @@ export default function QuizRoomPage() {
           </button>
         </div>
 
-        {/* Center Branding */}
         {showTopBranding && (
           <div
             className="absolute left-1/2 top-3 -translate-x-1/2 text-base sm:text-xl font-black text-white tracking-tighter lowercase select-none pointer-events-none"
@@ -506,10 +491,8 @@ export default function QuizRoomPage() {
           </div>
         )}
 
-        {/* Right Controls: Players List Toggle & User profile */}
         <div className="flex items-center gap-2 relative pointer-events-auto">
           
-          {/* Players Toggle Button */}
           <button
             ref={playersButtonRef}
             onClick={() => setShowPlayers((visible) => !visible)}
@@ -524,7 +507,6 @@ export default function QuizRoomPage() {
             </span>
           </button>
 
-          {/* User profile dropdown trigger */}
           <div 
             onClick={() => setShowLogout(!showLogout)}
             className="flex items-center gap-1.5 text-xs text-white cursor-pointer select-none max-w-[42px] sm:max-w-xs drop-shadow-[0_8px_18px_rgba(0,0,0,0.9)]"
@@ -538,7 +520,6 @@ export default function QuizRoomPage() {
             </span>
           </div>
 
-          {/* Players List Dropdown (aligned relative to header) */}
           {showPlayers && (
             <div 
               ref={playersListRef} 
@@ -579,7 +560,6 @@ export default function QuizRoomPage() {
             </div>
           )}
 
-          {/* Logout Dropdown (aligned relative to header) */}
           {showLogout && (
             <div className="absolute right-0 top-11 z-50 bg-black/80 backdrop-blur-xl border border-white/10 p-1 shadow-2xl rounded-none">
               <button
@@ -597,7 +577,6 @@ export default function QuizRoomPage() {
 
       </header>
 
-      {/* Main Board Container */}
       <div className="flex-1 bg-[#09090b] flex flex-col justify-between relative min-h-0">
 
         {store.sessionClosedReason && (
@@ -633,7 +612,6 @@ export default function QuizRoomPage() {
           </div>
         )}
 
-        {/* Authoritative Thin Timer Line */}
         {store.gameStarted && store.currentQuestion && !store.correctAnswer && (
           <div className="w-full h-1 bg-white/5 relative shrink-0">
             <div 
@@ -643,15 +621,12 @@ export default function QuizRoomPage() {
           </div>
         )}
 
-        {/* Dynamic Center Scrollable Panel */}
         <div className="flex-grow overflow-y-auto no-scrollbar px-3 sm:px-6 pb-36 sm:pb-44 pt-24 flex flex-col items-center w-full min-h-0">
           <div className="max-w-xl w-full flex-grow flex flex-col justify-center gap-4">
 
-            {/* LOBBY / WAITING STATE */}
             {!store.gameStarted && (
               <div className="relative w-full flex items-center justify-center min-h-[250px]">
                 
-                {/* Generating overlay spinner */}
                 {!store.hasJoinedRoom ? (
                   store.errorMessage ? (
                     <p className="text-xl font-black text-white tracking-tight lowercase">
@@ -674,7 +649,6 @@ export default function QuizRoomPage() {
                     )}
                   </div>
                 ) : !store.quizReady ? (
-                  /* Slogan wait screen */
                   <div 
                     className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-1000 ease-in-out ${
                       showSlogan ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
@@ -704,7 +678,6 @@ export default function QuizRoomPage() {
                     )}
                   </div>
                 ) : (
-                  /* Slogan is done, Quiz is generated, waiting to start */
                   <div className="absolute inset-0 flex flex-col items-center justify-center transition-all duration-1000 ease-in-out opacity-100 scale-100">
                     {store.isHost ? (
                       <div className="text-center space-y-3">
@@ -742,7 +715,6 @@ export default function QuizRoomPage() {
               </div>
             )}
 
-            {/* Error Alert Box */}
             {(error || store.errorMessage) && !generating && (
               <div className="mb-4 bg-red-500/10 border border-red-500/20 text-red-200 text-xs p-3.5 flex items-start gap-2 max-w-xl w-full">
                 <AlertCircle size={14} className="shrink-0 text-red-400 mt-0.5" />
@@ -766,13 +738,11 @@ export default function QuizRoomPage() {
               </div>
             )}
 
-            {/* GAME OVER / PODIUM STANDS */}
             {store.gameStarted && store.isGameOver && (
               <div className={`w-full space-y-5 text-center transition-all duration-700 ${generationInProgress ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'}`}>
                 <Trophy className="text-white mx-auto mb-1" size={40} />
                 <h2 className="text-lg font-black text-white uppercase tracking-wider">Quiz Completed</h2>
                 
-                {/* Standings List */}
                 <div className="border border-white/10 bg-black/40 text-left font-mono rounded-none">
                   <div className="border-b border-white/10 px-3 py-1.5 bg-white/5 text-[9px] font-bold uppercase tracking-wider text-gray-400">
                     Final Standings
@@ -845,7 +815,6 @@ export default function QuizRoomPage() {
               </div>
             )}
 
-            {/* ACTIVE GAMEPLAY QUESTION & REVEAL CARD */}
             {store.gameStarted && store.currentQuestion && !store.isGameOver && (
               <div 
                 className={`w-full relative p-4 sm:p-6 border flex flex-col gap-4 sm:gap-6 rounded-none ${
@@ -855,12 +824,10 @@ export default function QuizRoomPage() {
                 }`}
                 style={store.theme ? { fontFamily: store.theme.fontFamily } : {}}
               >
-                {/* Custom Google Font Link Injection */}
                 {store.theme && (
                   <link rel="stylesheet" href={store.theme.fontUrl} />
                 )}
 
-                {/* Custom Card Decoration HTML */}
                 {store.theme?.cardDecorationHtml && (
                   <div 
                     className="absolute inset-0 pointer-events-none overflow-hidden z-0"
@@ -869,7 +836,6 @@ export default function QuizRoomPage() {
                 )}
 
                 <div className="relative z-10 flex flex-col gap-4 sm:gap-6 w-full">
-                  {/* Heading */}
                   <div className="flex justify-between items-end border-b border-white/10 pb-2">
                     <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">
                       Question {store.currentQuestion.questionIndex + 1} of {store.currentQuestion.totalQuestions}
@@ -879,14 +845,12 @@ export default function QuizRoomPage() {
                     </span>
                   </div>
 
-                  {/* Question Text */}
                   <div className={store.theme ? preserveAuthoredCase(store.theme.questionStyle) : "border border-white/10 bg-black/50 p-4 sm:p-5 text-center rounded-none normal-case"}>
                     <div className="text-sm sm:text-base md:text-lg font-bold leading-relaxed normal-case">
                       <MathText>{store.currentQuestion.questionText}</MathText>
                     </div>
                   </div>
 
-                  {/* Selections Grid */}
                   <div className="grid grid-cols-1 gap-2 sm:gap-3">
                     {store.currentQuestion.options.map((option: string) => {
                       const isSelected = store.submittedAnswer === option;
@@ -918,7 +882,6 @@ export default function QuizRoomPage() {
                           btnStyle = forceSquare(store.theme.optionNormalStyle);
                         }
                       } else {
-                        // Default styles fallback
                         btnStyle = "border-white/10 bg-black hover:border-white text-gray-300 rounded-none";
                         if (store.correctAnswer) {
                           if (isCorrectOpt) {
@@ -950,7 +913,6 @@ export default function QuizRoomPage() {
                     })}
                   </div>
 
-                  {/* AI Explanation details */}
                   {store.correctAnswer && (
                     <div className="space-y-3">
                       <div className={store.theme ? forceSquare(store.theme.explanationStyle) : "border border-white/10 bg-black/40 p-4 sm:p-5 rounded-none"}>
@@ -988,13 +950,11 @@ export default function QuizRoomPage() {
           </div>
         </div>
 
-        {/* Floating prompt/chat controls */}
         <div
           className="fixed inset-x-0 z-30 flex flex-col items-center px-4 pointer-events-none transition-[bottom] duration-200 ease-out"
           style={{ bottom: `calc(1rem + ${keyboardLift}px)` }}
         >
             
-            {/* Chat Messages Overlay */}
             {displayedChatMessages.length > 0 && (
               <div className="w-full max-w-2xl max-h-24 sm:max-h-32 overflow-y-auto flex flex-col justify-end font-mono mb-2 px-3 pointer-events-auto">
                 <div className="space-y-1">
@@ -1023,10 +983,8 @@ export default function QuizRoomPage() {
               </div>
             )}
 
-            {/* Dynamic Horizontal Sliding Toggles */}
             <div className="w-full max-w-2xl flex items-center justify-between gap-3 pointer-events-auto">
               
-              {/* PROMPT PANEL CONTAINER */}
               <div 
                 className={`transition-all duration-500 ease-in-out overflow-hidden flex items-center bg-black/60 backdrop-blur-xl border border-white/20 rounded-none p-1.5 ${
                   activeTab === 'prompt' 
@@ -1064,7 +1022,6 @@ export default function QuizRoomPage() {
                 )}
               </div>
 
-              {/* CHAT PANEL CONTAINER */}
               <div 
                 className={`transition-all duration-500 ease-in-out flex items-center bg-black/60 backdrop-blur-xl border border-white/20 rounded-none p-1.5 ${
                   activeTab === 'chat' 
@@ -1140,7 +1097,6 @@ export default function QuizRoomPage() {
         </div>
       )}
 
-      {/* Inactivity Warning Popup */}
       {isIdle && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md px-6">
           <div className="w-full max-w-md border border-white/20 bg-[#09090b] p-6 text-center shadow-2xl rounded-none">

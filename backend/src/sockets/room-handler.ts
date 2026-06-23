@@ -11,8 +11,8 @@ interface GameSessionState {
   secondsLeft: number;
   startTime: number;
   questionEndsAt: number;
-  answersSubmitted: Set<string>; // userIds
-  activePlayerSockets: Map<string, Set<string>>; // userId -> active socketIds
+  answersSubmitted: Set<string>;
+  activePlayerSockets: Map<string, Set<string>>;
   hostForfeitTimer: NodeJS.Timeout | null;
   hostForfeited: boolean;
   roundEnded: boolean;
@@ -24,7 +24,6 @@ interface GameSessionState {
   answersByQuestion: Map<number, Map<string, string>>;
 }
 
-// In-memory registry of running quizzes
 const activeSessions = new Map<string, GameSessionState>();
 const closedSessions = new Map<string, 'host_forfeited' | 'new_session'>();
 
@@ -57,7 +56,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
 
     console.log(`[Socket] Client connected: ${socket.id}`);
 
-    // JOIN ROOM EVENT
     socket.on('join_room', async (data: { quizSessionId: string }) => {
       const { quizSessionId } = data;
       const authenticatedUser = socket.data.user as { userId: string; username: string; isGuest: boolean } | undefined;
@@ -79,7 +77,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
       console.log(`[Socket] User ${username} (${userId}) joining room: ${quizSessionId}`);
 
       try {
-        // 1. Ensure participant record exists in DB
         const participant = await prisma.participant.upsert({
           where: {
             id: await (async () => {
@@ -90,7 +87,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
             })()
           },
           update: {
-            // Keep existing isHost status; do not let the client demote themselves
           },
           create: {
             quizSessionId,
@@ -100,10 +96,8 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
           }
         });
 
-        // 2. Put socket into room channel
         socket.join(quizSessionId);
 
-        // 3. Initialize or update session state in memory
         if (!activeSessions.has(quizSessionId)) {
           const dbSession = await prisma.quizSession.findUnique({
             where: { id: quizSessionId },
@@ -146,7 +140,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
           session.hostForfeitTimer = null;
         }
 
-        // 4. Retrieve list of all participants to broadcast presence
         await broadcastPresence(io, prisma, quizSessionId);
 
         if (session.timer) {
@@ -156,7 +149,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
           );
         }
 
-        // 5. Build current question info if active
         const currentQuestion = session.currentQuestionIndex >= 0 && session.questions.length > 0
           ? {
               questionIndex: session.currentQuestionIndex,
@@ -166,7 +158,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
             }
           : null;
 
-        // 6. Send current game status to the client who just joined
         socket.emit('room_status', {
           joined: true,
           isHost: participant.isHost,
@@ -219,7 +210,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
       io.to(quizSessionId).emit('quiz_generation_cancelled');
     });
 
-    // QUIZ GENERATED EVENT
     socket.on('quiz_generated', async (data: { quizSessionId: string }) => {
       const { quizSessionId } = data;
       if (!(await authorizeHost(quizSessionId))) return;
@@ -251,7 +241,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
       }
     });
 
-    // START GAME EVENT
     socket.on('start_game', async (data: { quizSessionId: string }) => {
       const { quizSessionId } = data;
       if (!(await authorizeHost(quizSessionId))) return;
@@ -275,7 +264,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
           return socket.emit('error_message', { message: 'No questions generated for this session yet.' });
         }
 
-        // Reset scores in database
         await prisma.participant.updateMany({
           where: { quizSessionId },
           data: { score: 0 }
@@ -302,7 +290,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
       }
     });
 
-    // SUBMIT ANSWER EVENT
     socket.on('submit_answer', async (data: { quizSessionId: string; userId: string; answer: string }) => {
       const { quizSessionId, answer } = data;
       const userId = currentUserId;
@@ -327,11 +314,9 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
 
         let pointsEarned = 0;
         if (isCorrect) {
-          // Speed multiplier calculation
-          const elapsed = (Date.now() - session.startTime) / 1000; // seconds
+          const elapsed = (Date.now() - session.startTime) / 1000;
           pointsEarned = 500 + Math.round(500 * (Math.max(0, 30 - elapsed) / 30));
           
-          // Increment player score in DB
           const pRecord = await prisma.participant.findFirst({
             where: { quizSessionId, userId }
           });
@@ -340,7 +325,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
               where: { id: pRecord.id },
               data: { score: pRecord.score + pointsEarned }
             });
-            // Immediately broadcast latest scores to the sidebar standings pane
             await broadcastPresence(io, prisma, quizSessionId);
           }
         }
@@ -350,11 +334,9 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
         questionAnswers.set(userId, answer);
         session.answersByQuestion.set(session.currentQuestionIndex, questionAnswers);
         
-        // Lookup username
         const userRecord = await prisma.user.findUnique({ where: { id: userId } });
         const username = userRecord?.username || 'Player';
 
-        // Broadcast player submission event (renders checkmarks on screen)
         io.to(quizSessionId).emit('player_answered', {
           userId,
           username,
@@ -362,7 +344,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
           isCorrect
         });
 
-        // If everyone has answered, fast-forward and end the round
         const activeUsersCount = session.activePlayerSockets.size;
         if (session.answersSubmitted.size >= activeUsersCount) {
           endRound(io, prisma, quizSessionId);
@@ -373,7 +354,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
       }
     });
 
-    // CHAT MESSAGE EVENT
     socket.on('send_chat', async (data: { quizSessionId: string; userId: string; message: string }) => {
       const { quizSessionId, message } = data;
       const userId = currentUserId;
@@ -401,7 +381,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
       }
     });
 
-    // NEXT QUESTION EVENT
     socket.on('next_question', async (data: { quizSessionId: string }) => {
       const { quizSessionId } = data;
       if (!(await authorizeHost(quizSessionId))) return;
@@ -426,7 +405,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
       acknowledge?.({ success: true });
     });
 
-    // DISCONNECT EVENT
     socket.on('disconnect', async () => {
       console.log(`[Socket] Client disconnected: ${socket.id}`);
       
@@ -441,7 +419,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
             session.activePlayerSockets.delete(currentUserId);
           }
           
-          // Clean up session if empty
           if (session.activePlayerSockets.size === 0) {
             if (session.timer) clearInterval(session.timer);
             if (session.advanceTimer) clearTimeout(session.advanceTimer);
@@ -449,7 +426,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
             activeSessions.delete(currentSessionId);
             console.log(`[Socket] Cleaned up empty session: ${currentSessionId}`);
           } else {
-            // Update presence for remaining players
             await broadcastPresence(io, prisma, currentSessionId);
 
             const disconnectedParticipant = await prisma.participant.findFirst({
@@ -481,7 +457,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
               }, 5000);
             }
             
-            // If we were waiting on answers, check if remaining players have all submitted
             if (session.currentQuestionIndex >= 0 && session.timer) {
               if (session.answersSubmitted.size >= session.activePlayerSockets.size) {
                 endRound(io, prisma, currentSessionId);
@@ -494,7 +469,6 @@ export function registerSocketHandlers(io: Server, prisma: PrismaClient) {
   });
 }
 
-// HELPER: Broadcast live players presence state
 async function broadcastPresence(io: Server, prisma: PrismaClient, quizSessionId: string) {
   const session = activeSessions.get(quizSessionId);
   const activeUserIds = session ? Array.from(session.activePlayerSockets.keys()) : [];
@@ -530,12 +504,10 @@ async function broadcastPresence(io: Server, prisma: PrismaClient, quizSessionId
   }
 }
 
-// HELPER: Core Question Cycle Management
 function startQuestionCycle(io: Server, prisma: PrismaClient, quizSessionId: string, questionIndex: number) {
   const session = activeSessions.get(quizSessionId);
   if (!session) return;
 
-  // Clear any existing timers
   if (session.timer) clearInterval(session.timer);
   if (session.advanceTimer) clearTimeout(session.advanceTimer);
   session.advanceTimer = null;
@@ -548,7 +520,6 @@ function startQuestionCycle(io: Server, prisma: PrismaClient, quizSessionId: str
   session.questionEndsAt = session.startTime + 30_000;
   session.roundEnded = false;
 
-  // Send question details (excluding the correct answer and explanation for security!)
   io.to(quizSessionId).emit('question_start', {
     questionIndex,
     questionText: question.questionText,
@@ -557,7 +528,6 @@ function startQuestionCycle(io: Server, prisma: PrismaClient, quizSessionId: str
     endsAt: session.questionEndsAt
   });
 
-  // Authoritative countdown loop
   session.timer = setInterval(() => {
     session.secondsLeft = Math.max(0, Math.ceil((session.questionEndsAt - Date.now()) / 1000));
     io.to(quizSessionId).emit('timer_tick', {
@@ -571,7 +541,6 @@ function startQuestionCycle(io: Server, prisma: PrismaClient, quizSessionId: str
   }, 1000);
 }
 
-// HELPER: Conclude Question Round
 async function endRound(io: Server, prisma: PrismaClient, quizSessionId: string) {
   const session = activeSessions.get(quizSessionId);
   if (!session || !session.timer) return;
@@ -582,7 +551,6 @@ async function endRound(io: Server, prisma: PrismaClient, quizSessionId: string)
   const currentQuestion = session.questions[session.currentQuestionIndex];
 
   try {
-    // Get updated leaderboard
     const participants = await prisma.participant.findMany({
       where: { quizSessionId },
       include: {
@@ -605,7 +573,6 @@ async function endRound(io: Server, prisma: PrismaClient, quizSessionId: string)
 
     session.nextQuestionAt = Date.now() + 10_000;
 
-    // Broadcast correct details
     io.to(quizSessionId).emit('round_ended', {
       correctAnswer: currentQuestion.correctAnswer,
       explanation: currentQuestion.explanation,
@@ -621,7 +588,6 @@ async function endRound(io: Server, prisma: PrismaClient, quizSessionId: string)
   }
 }
 
-// HELPER: End Game Session
 async function endGame(io: Server, prisma: PrismaClient, quizSessionId: string) {
   const session = activeSessions.get(quizSessionId);
   if (!session) return;

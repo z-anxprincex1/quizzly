@@ -15,7 +15,6 @@ export default function CreateQuizPage() {
   const [loadingStep, setLoadingStep] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // Form states
   const [topic, setTopic] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -79,7 +78,6 @@ export default function CreateQuizPage() {
     setLoading(true);
 
     try {
-      // Step 1: Upload and communicate with Python fastapi
       setLoadingStep("Extracting text and chunking content...");
       const formData = new FormData();
       if (file) {
@@ -100,9 +98,8 @@ export default function CreateQuizPage() {
         throw new Error(errorData.detail || "Failed to communicate with AI worker.");
       }
 
-      const generatedData = await response.json(); // { topic: string, questions: [...] }
+      const generatedData = await response.json();
 
-      // Step 2: Store payload via Next Server Actions in MySQL Prisma
       setLoadingStep("Storing quiz sessions and question records in MySQL...");
       const dbResult = await saveQuizSession(generatedData.topic, generatedData.questions, generatedData.theme);
 
@@ -122,13 +119,11 @@ export default function CreateQuizPage() {
 
   return (
     <main className="min-h-screen bg-grid p-6 md:p-12 relative overflow-hidden flex flex-col items-center justify-center">
-      {/* Background glow filters */}
       <div className="absolute top-10 left-10 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse-slow"></div>
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '3s' }}></div>
 
       <div className="w-full max-w-2xl z-10">
         
-        {/* Go back */}
         <button
           onClick={() => router.push('/')}
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6 text-sm font-semibold cursor-pointer"
@@ -137,7 +132,6 @@ export default function CreateQuizPage() {
           Back to Dashboard
         </button>
 
-        {/* Header */}
         <div className="mb-8">
           <h2 className="text-3xl font-black text-white flex items-center gap-2">
             <Sparkles className="text-purple-400" />
@@ -148,7 +142,6 @@ export default function CreateQuizPage() {
           </p>
         </div>
 
-        {/* Form panel */}
         <div className="glass-panel border border-white/10 rounded-2xl p-8 relative overflow-hidden">
           
           {loading ? (
@@ -157,7 +150,6 @@ export default function CreateQuizPage() {
               <h3 className="text-xl font-bold text-white mb-2">Analyzing Material</h3>
               <p className="text-purple-400 font-semibold text-sm animate-pulse">{loadingStep}</p>
               
-              {/* Scanning visual effect */}
               <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden mt-6 max-w-xs relative border border-white/5">
                 <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 w-1/3 rounded-full absolute animate-[shimmer_1.5s_infinite]" style={{
                   animationName: 'shimmer',
@@ -184,7 +176,6 @@ export default function CreateQuizPage() {
                 </div>
               )}
 
-              {/* PDF Ingestion Area */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
                   Ingest PDF Document (Optional)
@@ -227,7 +218,6 @@ export default function CreateQuizPage() {
                 </div>
               </div>
 
-              {/* Topic Prompt Input */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
                   Topic Prompt
@@ -241,7 +231,6 @@ export default function CreateQuizPage() {
                 />
               </div>
 
-              {/* Generate Button */}
               <button
                 type="submit"
                 className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-purple-600/20 hover:shadow-purple-600/35 transition-all flex items-center justify-center gap-2 cursor-pointer"

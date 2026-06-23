@@ -7,12 +7,10 @@ from typing import Optional
 from .schemas import QuizGenerationResponse
 from .services import extract_text_from_pdf, generate_quiz_from_text
 
-# Load environment variables
 load_dotenv()
 
 app = FastAPI(title="Quizly AI Microservice", version="1.0.0")
 
-# Enable CORS for local services
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -30,7 +28,6 @@ async def generate_quiz(
     file: Optional[UploadFile] = File(None),
     topic: Optional[str] = Form(None)
 ):
-    # Ensure at least one input is provided
     if not file and not topic:
         raise HTTPException(
             status_code=400,
@@ -40,7 +37,6 @@ async def generate_quiz(
     extracted_text = ""
     quiz_topic = topic or "Ingested Document"
     
-    # Process PDF file if uploaded
     if file:
         if not file.filename.endswith('.pdf'):
             raise HTTPException(
@@ -54,7 +50,6 @@ async def generate_quiz(
             filename_topic = os.path.splitext(file.filename)[0].replace("-", " ").replace("_", " ").title()
             
             if not extracted_text.strip():
-                # Scanned or unreadable PDF: Fallback to generating a quiz about the filename's topic
                 print(f"[AI Fallback] Empty text extracted from {file.filename}. Generating quiz using filename topic: {filename_topic}")
                 extracted_text = f"Generate a quiz about the topic: {filename_topic}"
                 quiz_topic = f"{filename_topic} (Scanned Document Fallback)"
@@ -67,10 +62,8 @@ async def generate_quiz(
                 detail=f"Error reading PDF file: {str(e)}"
             )
     else:
-        # Topic-only prompt
         extracted_text = f"Generate a quiz about the topic: {topic}"
 
-    # Invoke Gemini API
     try:
         quiz_data = generate_quiz_from_text(extracted_text, topic=quiz_topic)
         return quiz_data

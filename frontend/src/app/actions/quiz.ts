@@ -93,7 +93,6 @@ export async function saveQuizSession(topic: string, questions: QuestionInput[],
   }
 
   try {
-    // 1. Create Quiz Session with questions relation
     const session = await prisma.quizSession.create({
       data: {
         topic,
@@ -101,7 +100,7 @@ export async function saveQuizSession(topic: string, questions: QuestionInput[],
         questions: {
           create: questions.map(q => ({
             questionText: q.questionText,
-            options: q.options, // Prisma maps this automatically to Json column in MySQL
+            options: q.options,
             correctAnswer: q.correctAnswer,
             explanation: q.explanation
           }))
@@ -109,7 +108,6 @@ export async function saveQuizSession(topic: string, questions: QuestionInput[],
       }
     });
 
-    // 2. Automatically register the creator as the Host participant
     await prisma.participant.create({
       data: {
         quizSessionId: session.id,

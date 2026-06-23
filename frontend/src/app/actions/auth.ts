@@ -8,12 +8,10 @@ import { prisma } from '@/lib/db';
 const JWT_SECRET = process.env.JWT_SECRET || 'quizly-jwt-secret-key-super-secure-change-in-prod';
 const COOKIE_NAME = 'quizly_session';
 
-// Helper to hash password using SHA-256
 function hashPassword(password: string): string {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
 
-// Generate token and set cookie
 async function setSessionCookie(userId: string, username: string, isGuest: boolean, avatar?: string | null) {
   const token = jwt.sign(
     { userId, username, isGuest, avatar: avatar || null },
@@ -26,7 +24,7 @@ async function setSessionCookie(userId: string, username: string, isGuest: boole
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 7,
     path: '/'
   });
 }
@@ -138,7 +136,6 @@ export async function getCurrentUser() {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; username: string; isGuest: boolean };
     
-    // Verify user still exists in database
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId }
     });

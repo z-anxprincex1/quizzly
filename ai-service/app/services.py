@@ -149,7 +149,6 @@ def generate_quiz_from_text(text: str, topic: str = "Custom Topic") -> QuizGener
     model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     
     try:
-        # Try new google-genai SDK first
         from google import genai
         from google.genai import types
         
@@ -166,11 +165,9 @@ def generate_quiz_from_text(text: str, topic: str = "Custom Topic") -> QuizGener
         )
         return response.parsed
     except ImportError:
-        # Fallback to the legacy google-generativeai SDK if only that is available
         import google.generativeai as legacy_genai
         
         legacy_genai.configure(api_key=api_key)
-        # Use gemini-1.5-flash for legacy as 2.5-flash might not be fully mapped in older SDKs
         legacy_model = "gemini-1.5-flash"
         
         response = legacy_genai.GenerativeModel(legacy_model).generate_content(
@@ -182,11 +179,9 @@ def generate_quiz_from_text(text: str, topic: str = "Custom Topic") -> QuizGener
             }
         )
         
-        # Manually parse the JSON string response to the Pydantic schema
         data = json.loads(response.text)
         return QuizGenerationResponse(**data)
     except Exception as e:
-        # Fallback to gemini-2.5-flash as a general fallback if main model failed
         try:
             from google import genai
             from google.genai import types

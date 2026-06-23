@@ -1,9 +1,4 @@
 steps:
-  # -------------------------------------------------------------
-  # Part 1: Sockets Backend Service
-  # -------------------------------------------------------------
-
-  # 1. Build the backend Docker image
   - name: "gcr.io/cloud-builders/docker"
     args:
       - "build"
@@ -14,7 +9,6 @@ steps:
       - "backend"
     id: "build-backend"
 
-  # 2. Push the backend image to Google Container Registry
   - name: "gcr.io/cloud-builders/docker"
     args:
       - "push"
@@ -22,7 +16,6 @@ steps:
     id: "push-backend"
     waitFor: ["build-backend"]
 
-  # 3. Deploy the backend image to GCP Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: "gcloud"
     args:
@@ -44,11 +37,6 @@ steps:
     id: "deploy-backend"
     waitFor: ["push-backend"]
 
-  # -------------------------------------------------------------
-  # Part 2: FastAPI AI Service
-  # -------------------------------------------------------------
-
-  # 4. Build the AI service Docker image
   - name: "gcr.io/cloud-builders/docker"
     args:
       - "build"
@@ -60,7 +48,6 @@ steps:
     id: "build-ai"
     waitFor: ["deploy-backend"]
 
-  # 5. Push the AI service image to Google Container Registry
   - name: "gcr.io/cloud-builders/docker"
     args:
       - "push"
@@ -68,7 +55,6 @@ steps:
     id: "push-ai"
     waitFor: ["build-ai"]
 
-  # 6. Deploy the AI service image to GCP Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: "gcloud"
     args:

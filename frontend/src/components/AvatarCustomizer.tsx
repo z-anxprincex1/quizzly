@@ -2,13 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Shuffle } from 'lucide-react';
 import { BlockyAvatar, SKIN_COLORS, HAIR_COLORS, BEARD_COLORS } from './BlockyAvatar';
 
-// Vector Icon Components for the Tabs
 const MaleFemaleIcon = () => (
   <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    {/* Male symbol */}
     <circle cx="8" cy="16" r="3" />
     <path d="M11 13l4-4M15 9h-3M15 9v3" />
-    {/* Female symbol */}
     <circle cx="16" cy="7" r="3" />
     <path d="M16 10v4M14 12h4" />
   </svg>
@@ -45,10 +42,8 @@ export function AvatarCustomizer() {
   const [hair, setHair] = useState<string>('1');
   const [beard, setBeard] = useState<string>('1');
   
-  // Tab selector state
   const [activeTab, setActiveTab] = useState<'gender' | 'skin' | 'hair' | 'beard'>('gender');
 
-  // If gender changes to female, reset beard style to clean shaved ('1')
   useEffect(() => {
     if (gender === 'female') {
       setBeard('1');
@@ -80,7 +75,6 @@ export function AvatarCustomizer() {
   const hairPresetNames = ['steve classic', 'alex bangs', 'neon mohawk', 'curly afro', 'bandana cap'];
   const beardPresetNames = ['clean shaved', 'mustache', 'goatee', 'full beard', 'stubble'];
 
-  // Handle Chevron Left Click
   const handlePrevOption = () => {
     if (activeTab === 'gender') {
       setGender(gender === 'male' ? 'female' : 'male');
@@ -99,7 +93,6 @@ export function AvatarCustomizer() {
     }
   };
 
-  // Handle Chevron Right Click
   const handleNextOption = () => {
     if (activeTab === 'gender') {
       setGender(gender === 'male' ? 'female' : 'male');
@@ -118,7 +111,6 @@ export function AvatarCustomizer() {
     }
   };
 
-  // Helper to determine text subtitle of the option
   const getSubtext = () => {
     if (activeTab === 'gender') return `model: ${gender}`;
     if (activeTab === 'skin') return `skin tone: ${skinPresetNames[parseInt(skin) - 1]}`;
@@ -129,13 +121,9 @@ export function AvatarCustomizer() {
   return (
     <div className="w-full flex flex-col items-center p-0 font-mono text-white mb-2 sm:mb-6">
       
-      {/* Hidden field for form submission */}
       <input type="hidden" name="avatar" value={configString} />
 
-      {/* Main Row: Preview, Randomize on Left, Customization Category Icons on Right */}
       <div className="grid grid-cols-[2rem_6rem_2rem] sm:grid-cols-[2.5rem_8rem_2.5rem] items-center gap-3 sm:gap-6 justify-center">
-        
-        {/* Randomize Button */}
         <div className="flex items-center justify-center">
           <button
             type="button"
@@ -148,7 +136,6 @@ export function AvatarCustomizer() {
           </button>
         </div>
 
-        {/* Preview Frame */}
         <div className="flex flex-col items-center gap-1.5 select-none">
           <div className="text-[8px] sm:text-[9px] font-bold text-gray-500 uppercase tracking-widest">
             avatar preview
@@ -158,10 +145,7 @@ export function AvatarCustomizer() {
           </div>
         </div>
 
-        {/* Category Icons Stack */}
         <div className="flex flex-col items-center justify-center gap-1.5 sm:gap-2">
-          
-          {/* Gender Tab */}
           <button
             type="button"
             onClick={() => setActiveTab('gender')}
@@ -176,7 +160,6 @@ export function AvatarCustomizer() {
             <MaleFemaleIcon />
           </button>
 
-          {/* Skin Tone Tab */}
           <button
             type="button"
             onClick={() => setActiveTab('skin')}
@@ -191,7 +174,6 @@ export function AvatarCustomizer() {
             <PaletteIcon />
           </button>
 
-          {/* Hairstyle Tab */}
           <button
             type="button"
             onClick={() => setActiveTab('hair')}
@@ -206,7 +188,6 @@ export function AvatarCustomizer() {
             <ScissorsIcon />
           </button>
 
-          {/* Beard Style Tab */}
           {gender === 'male' && (
             <button
               type="button"
@@ -227,15 +208,11 @@ export function AvatarCustomizer() {
 
       </div>
 
-      {/* Subtext info */}
       <div className="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-wider mt-2 sm:mt-3.5 h-4 select-none">
         {getSubtext()}
       </div>
 
-      {/* Bottom Option Slider */}
       <div className="w-full flex items-center gap-1 sm:gap-2 bg-transparent p-1 sm:p-2 rounded-none mt-1 sm:mt-2">
-        
-        {/* Left Slider Arrow */}
         <button
           type="button"
           onClick={handlePrevOption}
@@ -246,13 +223,9 @@ export function AvatarCustomizer() {
           <ChevronLeft size={16} />
         </button>
 
-        {/* Options Row (Horizontal Slider) */}
         <div className="flex-grow flex items-center justify-center gap-1 sm:gap-2.5 overflow-x-auto no-scrollbar py-0.5 sm:py-1">
-          
-          {/* Gender choices */}
           {activeTab === 'gender' && (
             <>
-              {/* Male Button */}
               <button
                 type="button"
                 onClick={() => setGender('male')}
@@ -269,7 +242,6 @@ export function AvatarCustomizer() {
                 <span className="text-[7px] sm:text-[8px] font-bold mt-0.5 sm:mt-1 text-blue-300">♂</span>
               </button>
 
-              {/* Female Button */}
               <button
                 type="button"
                 onClick={() => setGender('female')}
@@ -288,7 +260,6 @@ export function AvatarCustomizer() {
             </>
           )}
 
-          {/* Skin choices */}
           {activeTab === 'skin' &&
             Object.keys(SKIN_COLORS).map((key) => {
               const isSelected = skin === key;
@@ -311,7 +282,6 @@ export function AvatarCustomizer() {
               );
             })}
 
-          {/* Hair choices */}
           {activeTab === 'hair' &&
             Object.keys(HAIR_COLORS).map((key) => {
               const isSelected = hair === key;
@@ -334,7 +304,6 @@ export function AvatarCustomizer() {
               );
             })}
 
-          {/* Beard choices */}
           {activeTab === 'beard' &&
             Object.keys(BEARD_COLORS).map((key) => {
               const isSelected = beard === key;
@@ -359,7 +328,6 @@ export function AvatarCustomizer() {
 
         </div>
 
-        {/* Right Slider Arrow */}
         <button
           type="button"
           onClick={handleNextOption}

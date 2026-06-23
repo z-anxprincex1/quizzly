@@ -6,27 +6,27 @@ interface BlockyAvatarProps {
 }
 
 export const SKIN_COLORS = {
-  '1': '#ffdbac', // Peach
-  '2': '#f1c27d', // Tan
-  '3': '#e0ac69', // Golden
-  '4': '#c68642', // Brown
-  '5': '#8d5524', // Dark
+  '1': '#ffdbac',
+  '2': '#f1c27d',
+  '3': '#e0ac69',
+  '4': '#c68642',
+  '5': '#8d5524',
 };
 
 export const HAIR_COLORS = {
-  '1': '#573d26', // Steve Brown
-  '2': '#e29c3f', // Alex Ginger/Blonde
-  '3': '#d946ef', // Neon Purple Punk
-  '4': '#18181b', // Curly Afro Black
-  '5': '#ef4444', // Red Bandana
+  '1': '#573d26',
+  '2': '#e29c3f',
+  '3': '#d946ef',
+  '4': '#18181b',
+  '5': '#ef4444',
 };
 
 export const BEARD_COLORS = {
   '1': 'transparent',
-  '2': '#3f3f46', // Mustache Grey/Black
-  '3': '#3f3f46', // Goatee
-  '4': '#3f3f46', // Full Beard
-  '5': 'rgba(0, 0, 0, 0.25)', // Stubble
+  '2': '#3f3f46',
+  '3': '#3f3f46',
+  '4': '#3f3f46',
+  '5': 'rgba(0, 0, 0, 0.25)',
 };
 
 export function getAvatarMatrix(gender: string, skin: string, hair: string, beard: string) {
@@ -36,16 +36,13 @@ export function getAvatarMatrix(gender: string, skin: string, hair: string, bear
   const hairColor = HAIR_COLORS[hair as keyof typeof HAIR_COLORS] || HAIR_COLORS['1'];
   const beardColor = BEARD_COLORS[beard as keyof typeof BEARD_COLORS] || BEARD_COLORS['1'];
 
-  // 1. Fill skin base
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       matrix[r][c] = skinColor;
     }
   }
 
-  // 2. Apply Hair
   if (hair === '1') {
-    // Steve Classic
     for (let c = 0; c < 8; c++) {
       matrix[0][c] = hairColor;
       matrix[1][c] = hairColor;
@@ -57,7 +54,6 @@ export function getAvatarMatrix(gender: string, skin: string, hair: string, bear
     matrix[2][6] = hairColor;
     matrix[2][7] = hairColor;
   } else if (hair === '2') {
-    // Alex Ginger Bangs
     for (let c = 0; c < 8; c++) {
       matrix[0][c] = hairColor;
       matrix[1][c] = hairColor;
@@ -68,7 +64,6 @@ export function getAvatarMatrix(gender: string, skin: string, hair: string, bear
     matrix[2][5] = hairColor;
     matrix[2][6] = hairColor;
     matrix[2][7] = hairColor;
-    // side extensions
     matrix[3][0] = hairColor;
     matrix[3][7] = hairColor;
     matrix[4][0] = hairColor;
@@ -76,41 +71,34 @@ export function getAvatarMatrix(gender: string, skin: string, hair: string, bear
     matrix[5][0] = hairColor;
     matrix[5][7] = hairColor;
   } else if (hair === '3') {
-    // Neon Punk Mohawk
     for (let r = 0; r < 3; r++) {
       matrix[r][3] = hairColor;
       matrix[r][4] = hairColor;
     }
   } else if (hair === '4') {
-    // Curly Afro
     for (let r = 0; r < 2; r++) {
       for (let c = 0; c < 8; c++) {
         matrix[r][c] = hairColor;
       }
     }
-    // sides puff
     matrix[2][0] = hairColor;
     matrix[2][7] = hairColor;
     matrix[3][0] = hairColor;
     matrix[3][7] = hairColor;
   } else if (hair === '5') {
-    // Red Bandana
     for (let c = 0; c < 8; c++) {
       matrix[0][c] = hairColor;
       matrix[1][c] = hairColor;
     }
   }
 
-  // 3. Apply Beard (if male)
   if (gender === 'male') {
     if (beard === '2') {
-      // Mustache
       matrix[5][2] = beardColor;
       matrix[5][3] = beardColor;
       matrix[5][4] = beardColor;
       matrix[5][5] = beardColor;
     } else if (beard === '3') {
-      // Goatee
       matrix[5][3] = beardColor;
       matrix[5][4] = beardColor;
       matrix[6][3] = beardColor;
@@ -118,7 +106,6 @@ export function getAvatarMatrix(gender: string, skin: string, hair: string, bear
       matrix[7][3] = beardColor;
       matrix[7][4] = beardColor;
     } else if (beard === '4') {
-      // Full Beard
       matrix[4][0] = beardColor;
       matrix[4][7] = beardColor;
       matrix[5][0] = beardColor;
@@ -132,7 +119,6 @@ export function getAvatarMatrix(gender: string, skin: string, hair: string, bear
         matrix[7][c] = beardColor;
       }
     } else if (beard === '5') {
-      // Stubble
       matrix[4][0] = beardColor;
       matrix[4][7] = beardColor;
       matrix[5][0] = beardColor;
@@ -146,13 +132,11 @@ export function getAvatarMatrix(gender: string, skin: string, hair: string, bear
     }
   }
 
-  // 4. Eyes (Row 4)
   matrix[4][1] = '#ffffff';
-  matrix[4][2] = '#3b82f6'; // Blue iris
+  matrix[4][2] = '#3b82f6';
   matrix[4][5] = '#3b82f6';
   matrix[4][6] = '#ffffff';
 
-  // 5. Mouth (Row 6)
   matrix[6][3] = '#e11d48';
   matrix[6][4] = '#e11d48';
 
