@@ -3,8 +3,8 @@ import "./globals.css";
 import "katex/dist/katex.min.css";
 
 export const metadata: Metadata = {
-  title: "Quizzly | Real-time Multiplayer E-Learning Platform",
-  description: "Create AI-powered interactive quizzes and host real-time synchronized multiplayer lobbies with instant score tracking.",
+  title: "quizzly",
+  description: "Make an AI quiz, invite your friends, and find out who was bluffing.",
 };
 
 export default function RootLayout({
