@@ -40,6 +40,22 @@ It is part quiz game, part study tool, part "wait, why did Alex get that right?"
 
 The design is intentionally sharp, square, and a little arcade-ish. Players float around with custom blocky avatars. Chat messages drift in like tiny heckles. The host controls the quiz prompt. Guests can watch, answer, and talk trash responsibly.
 
+## Screenshots
+
+Tiny tour of the quizzly chaos:
+
+![Quizzly home and how it works](screenshots/1.png)
+
+![Avatar customization and sign in](screenshots/2.png)
+
+![Creating a new quizzly](screenshots/3.png)
+
+![Lobby ready with chat](screenshots/4.png)
+
+![Live quiz question](screenshots/5.png)
+
+![Quiz completed summary](screenshots/6.png)
+
 ## How a session works
 
 1. Someone creates a new session.

@@ -21,7 +21,7 @@ app.add_middleware(
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "model": os.getenv("GEMINI_MODEL", "gemini-2.5-flash")}
+    return {"status": "healthy", "model": os.getenv("GEMINI_MODEL", "gemini-3.5-flash")}
 
 @app.post("/generate-quiz", response_model=QuizGenerationResponse)
 async def generate_quiz(

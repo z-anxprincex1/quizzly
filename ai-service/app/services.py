@@ -146,7 +146,7 @@ def generate_quiz_from_text(text: str, topic: str = "Custom Topic") -> QuizGener
     {text[:30000]}
     """
     
-    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    model = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
     
     try:
         from google import genai
@@ -187,7 +187,7 @@ def generate_quiz_from_text(text: str, topic: str = "Custom Topic") -> QuizGener
             from google.genai import types
             client = genai.Client(api_key=api_key)
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-3.5-flash",
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",

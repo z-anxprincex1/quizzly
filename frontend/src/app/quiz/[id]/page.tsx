@@ -401,7 +401,7 @@ export default function QuizRoomPage() {
     store.notifyQuizGenerationStarted(sessionId);
 
     try {
-      setGeneratingStep("Invoking Gemini 3.5 AI model...");
+      setGeneratingStep("Invoking Gemini 3.5 Flash...");
       
       const formData = new FormData();
       formData.append("topic", trimmedInput);

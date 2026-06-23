@@ -87,7 +87,7 @@ export default function CreateQuizPage() {
         formData.append("topic", topic.trim());
       }
 
-      setLoadingStep("Invoking Gemini 2.5 API with Pydantic schemas...");
+      setLoadingStep("Invoking Gemini 3.5 Flash with Pydantic schemas...");
       const response = await fetch(`${AI_SERVICE_URL}/generate-quiz`, {
         method: 'POST',
         body: formData,
