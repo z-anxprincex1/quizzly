@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { getCurrentUser, getSocketAuthToken, logout } from '../../actions/auth';
 import { saveQuizQuestionsForSession } from '../../actions/quiz';
 import { type ChatMessage, useSocketStore } from '../../../store/useSocketStore';
@@ -42,8 +43,17 @@ export default function QuizRoomPage() {
   const router = useRouter();
   const sessionId = params.id;
 
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: user, isLoading: loading } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: getCurrentUser,
+  });
+  const { data: authToken } = useQuery({
+    queryKey: ['socket-auth-token', sessionId, user?.id],
+    queryFn: getSocketAuthToken,
+    enabled: !!user,
+    staleTime: 240_000,
+    gcTime: 240_000,
+  });
   const [copied, setCopied] = useState(false);
 
   const [chatInput, setChatInput] = useState('');
@@ -167,32 +177,18 @@ export default function QuizRoomPage() {
   }, [isIdle, store, router]);
 
   useEffect(() => {
-    getCurrentUser().then((currentUser) => {
-      if (!currentUser) {
-        router.push(`/?redirect=/quiz/${sessionId}`);
-      } else {
-        setUser(currentUser);
-        setLoading(false);
-      }
-    });
-  }, [sessionId, router]);
+    if (!loading && !user) {
+      router.push(`/?redirect=/quiz/${sessionId}`);
+    }
+  }, [loading, router, sessionId, user]);
 
   useEffect(() => {
-    if (user) {
-      let active = true;
+    if (user && authToken) {
+      useSocketStore.getState().connect(user.id, sessionId, authToken);
 
-      getSocketAuthToken().then((token) => {
-        if (active && token) {
-          store.connect(user.id, sessionId, token);
-        }
-      });
-
-      return () => {
-        active = false;
-        store.disconnect();
-      };
+      return () => useSocketStore.getState().disconnect();
     }
-  }, [user, sessionId]);
+  }, [authToken, sessionId, user]);
 
   useEffect(() => {
     if (!showPlayers) return;
@@ -328,6 +324,7 @@ export default function QuizRoomPage() {
   };
 
   const handleSelectOption = (option: string) => {
+    if (!user) return;
     if (store.hasAnswered || store.correctAnswer) return;
     store.submitAnswer(sessionId, user.id, option);
   };

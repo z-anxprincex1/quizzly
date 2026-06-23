@@ -1,39 +1,33 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useMutation } from '@tanstack/react-query';
 import { createEmptySession } from '../actions/quiz';
 import { Loader2 } from 'lucide-react';
 
 export default function DashboardRedirectorPage() {
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
+  const createSessionMutation = useMutation({
+    mutationFn: createEmptySession,
+    onSuccess: (result) => {
+      if (result && result.success && result.sessionId) {
+        router.push(`/quiz/${result.sessionId}`);
+      }
+    },
+  });
+  const { mutate: createSession, isIdle } = createSessionMutation;
+
+  const error =
+    createSessionMutation.data && !createSessionMutation.data.success
+      ? createSessionMutation.data.error || 'Failed to initialize session.'
+      : createSessionMutation.error?.message || null;
 
   useEffect(() => {
-    let active = true;
-
-    async function initLobby() {
-      try {
-        const result = await createEmptySession();
-        if (!active) return;
-
-        if (result && result.success && result.sessionId) {
-          router.push(`/quiz/${result.sessionId}`);
-        } else {
-          setError(result?.error || 'Failed to initialize session.');
-        }
-      } catch (err: any) {
-        if (!active) return;
-        setError(err.message || 'An unexpected error occurred.');
-      }
+    if (isIdle) {
+      createSession();
     }
-
-    initLobby();
-
-    return () => {
-      active = false;
-    };
-  }, [router]);
+  }, [createSession, isIdle]);
 
   if (error) {
     return (

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { getCurrentUser } from '../actions/auth';
 import { saveQuizSession } from '../actions/quiz';
 import { Upload, FileText, ArrowLeft, Loader2, Sparkles, AlertCircle } from 'lucide-react';
@@ -10,7 +11,10 @@ const AI_SERVICE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localho
 
 export default function CreateQuizPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const { data: user, isLoading: userLoading } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: getCurrentUser,
+  });
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -20,14 +24,10 @@ export default function CreateQuizPage() {
   const [dragActive, setDragActive] = useState(false);
 
   useEffect(() => {
-    getCurrentUser().then((currentUser) => {
-      if (!currentUser) {
-        router.push(`/?redirect=/create`);
-      } else {
-        setUser(currentUser);
-      }
-    });
-  }, [router]);
+    if (!userLoading && !user) {
+      router.push(`/?redirect=/create`);
+    }
+  }, [router, user, userLoading]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();

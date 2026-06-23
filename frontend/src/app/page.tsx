@@ -2,6 +2,7 @@
 
 import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useMutation } from '@tanstack/react-query';
 import { loginAsGuest } from './actions/auth';
 import { User, Loader2 } from 'lucide-react';
 import { AvatarCustomizer } from '@/components/AvatarCustomizer';
@@ -13,30 +14,35 @@ function RootAuthPageContent() {
   const redirectUrl = searchParams.get('redirect') || '/dashboard';
 
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [lobbyCode, setLobbyCode] = useState('');
+  const loginMutation = useMutation({
+    mutationFn: (formData: FormData) => loginAsGuest(formData),
+    onSuccess: (result, formData) => {
+      if (result && result.error) {
+        setError(result.error);
+        return;
+      }
+
+      if (result && result.success) {
+        const cleanLobbyCode = (formData.get('lobbyCode') as string)?.trim();
+        const finalRedirect = cleanLobbyCode
+          ? `/quiz/${cleanLobbyCode}`
+          : (redirectUrl === '/' ? '/dashboard' : redirectUrl);
+        router.push(finalRedirect);
+        router.refresh();
+      }
+    },
+    onError: (err: Error) => {
+      setError(err.message || 'An unexpected database error occurred.');
+    },
+  });
+
+  const loading = loginMutation.isPending;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const lobbyCode = formData.get('lobbyCode') as string;
-    const result = await loginAsGuest(formData);
-
-    setLoading(false);
-
-    if (result && result.error) {
-      setError(result.error);
-    } else if (result && result.success) {
-      const cleanLobbyCode = lobbyCode?.trim();
-      const finalRedirect = cleanLobbyCode 
-        ? `/quiz/${cleanLobbyCode}` 
-        : (redirectUrl === '/' ? '/dashboard' : redirectUrl);
-      router.push(finalRedirect);
-      router.refresh();
-    }
+    loginMutation.mutate(new FormData(e.currentTarget));
   };
 
   return (
