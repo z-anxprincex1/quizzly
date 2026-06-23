@@ -662,6 +662,17 @@ export default function QuizRoomPage() {
                             quizzly!
                           </span>
                         </div>
+                        <details className="group relative mx-auto mt-5 max-w-sm text-left text-xs text-gray-500">
+                          <summary className="cursor-pointer list-none text-center text-sm md:text-base font-black tracking-widest text-gray-400 transition-colors hover:text-gray-200 lowercase">
+                            <span className="inline-block transition-transform group-open:rotate-2">¿ how it works ?</span>
+                          </summary>
+                          <div className="absolute left-1/2 top-full z-10 mt-3 w-[min(20rem,calc(100vw-3rem))] -translate-x-1/2 border border-white/10 bg-black/75 p-3 leading-relaxed text-gray-500 lowercase shadow-[3px_3px_0_rgba(167,139,250,0.18)] backdrop-blur">
+                            <p>╰( ͡° ͜ʖ ͡° )つ type a topic you wanna learn. quizzly cooks questions.</p>
+                            <p className="mt-1 text-gray-600">try: cat psychology for suspicious roommates.</p>
+                            <p className="mt-1">ʕ•ᴥ•ʔ share the lobby code. suspects join.</p>
+                            <p className="mt-1">(ง'̀-'́)ง start the game. friendships survive probably.</p>
+                          </div>
+                        </details>
                       </div>
                     ) : (
                       <div className="mt-4 text-center max-w-md">
