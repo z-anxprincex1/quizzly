@@ -14,9 +14,9 @@ function hashPassword(password: string): string {
 }
 
 // Generate token and set cookie
-async function setSessionCookie(userId: string, username: string, isGuest: boolean) {
+async function setSessionCookie(userId: string, username: string, isGuest: boolean, avatar?: string | null) {
   const token = jwt.sign(
-    { userId, username, isGuest },
+    { userId, username, isGuest, avatar: avatar || null },
     JWT_SECRET,
     { expiresIn: '7d' }
   );
@@ -99,6 +99,7 @@ const GUEST_NAMES = [
 
 export async function loginAsGuest(formData: FormData) {
   let username = formData.get('username') as string;
+  const avatar = formData.get('avatar') as string || null;
   
   if (!username || !username.trim()) {
     const randIndex = Math.floor(Math.random() * GUEST_NAMES.length);
@@ -110,12 +111,13 @@ export async function loginAsGuest(formData: FormData) {
     const user = await prisma.user.create({
       data: {
         username,
-        isGuest: true
+        isGuest: true,
+        avatar
       }
     });
 
-    await setSessionCookie(user.id, user.username, true);
-    return { success: true, user: { id: user.id, username: user.username, isGuest: true } };
+    await setSessionCookie(user.id, user.username, true, user.avatar);
+    return { success: true, user: { id: user.id, username: user.username, isGuest: true, avatar: user.avatar } };
   } catch (err: any) {
     console.error('Guest login error:', err);
     return { error: 'An unexpected database error occurred.' };
@@ -147,7 +149,8 @@ export async function getCurrentUser() {
       id: user.id,
       username: user.username,
       email: user.email,
-      isGuest: user.isGuest
+      isGuest: user.isGuest,
+      avatar: user.avatar
     };
   } catch (err) {
     return null;
@@ -159,7 +162,7 @@ export async function getSocketAuthToken() {
   if (!user) return null;
 
   return jwt.sign(
-    { userId: user.id, username: user.username, isGuest: user.isGuest },
+    { userId: user.id, username: user.username, isGuest: user.isGuest, avatar: user.avatar },
     JWT_SECRET,
     { expiresIn: '5m' }
   );

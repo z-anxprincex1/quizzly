@@ -15,6 +15,7 @@ model User {
   isGuest       Boolean       @default(false)
   createdAt     DateTime      @default(now())
   participants  Participant[]
+  avatar        String?
 }
 
 model QuizSession {

@@ -507,7 +507,8 @@ async function broadcastPresence(io: Server, prisma: PrismaClient, quizSessionId
           select: {
             id: true,
             username: true,
-            isGuest: true
+            isGuest: true,
+            avatar: true
           }
         }
       }
@@ -519,7 +520,8 @@ async function broadcastPresence(io: Server, prisma: PrismaClient, quizSessionId
       isGuest: p.user.isGuest,
       isHost: p.isHost,
       score: p.score,
-      isOnline: activeUserIds.includes(p.userId)
+      isOnline: activeUserIds.includes(p.userId),
+      avatar: p.user.avatar
     }));
 
     io.to(quizSessionId).emit('presence_update', activePlayersList);
@@ -584,7 +586,7 @@ async function endRound(io: Server, prisma: PrismaClient, quizSessionId: string)
     const participants = await prisma.participant.findMany({
       where: { quizSessionId },
       include: {
-        user: { select: { username: true, isGuest: true } }
+        user: { select: { username: true, isGuest: true, avatar: true } }
       },
       orderBy: { score: 'desc' }
     });
@@ -594,7 +596,8 @@ async function endRound(io: Server, prisma: PrismaClient, quizSessionId: string)
       username: p.user.username,
       isGuest: p.user.isGuest,
       score: p.score,
-      isHost: p.isHost
+      isHost: p.isHost,
+      avatar: p.user.avatar
     }));
 
     session.roundEnded = true;
@@ -631,7 +634,7 @@ async function endGame(io: Server, prisma: PrismaClient, quizSessionId: string) 
     const participants = await prisma.participant.findMany({
       where: { quizSessionId },
       include: {
-        user: { select: { username: true, isGuest: true } }
+        user: { select: { username: true, isGuest: true, avatar: true } }
       },
       orderBy: { score: 'desc' }
     });
@@ -641,7 +644,8 @@ async function endGame(io: Server, prisma: PrismaClient, quizSessionId: string) 
       username: p.user.username,
       isGuest: p.user.isGuest,
       score: p.score,
-      isHost: p.isHost
+      isHost: p.isHost,
+      avatar: p.user.avatar
     }));
 
     session.gameOver = true;
@@ -653,13 +657,28 @@ async function endGame(io: Server, prisma: PrismaClient, quizSessionId: string) 
     session.nextQuestionAt = null;
 
     session.activePlayerSockets.forEach((socketIds, userId) => {
-      const summary = session.questions.map((question, questionIndex) => ({
-        questionText: question.questionText,
-        options: question.options,
-        correctAnswer: question.correctAnswer,
-        explanation: question.explanation,
-        submittedAnswer: session.answersByQuestion.get(questionIndex)?.get(userId) || null
-      }));
+      const summary = session.questions.map((question, questionIndex) => {
+        const questionAnswers = session.answersByQuestion.get(questionIndex) || new Map<string, string>();
+        const correctPlayers = participants
+          .filter((participant) => {
+            const submittedAnswer = questionAnswers.get(participant.userId);
+            return submittedAnswer?.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase();
+          })
+          .map((participant) => ({
+            userId: participant.userId,
+            username: participant.user.username,
+            avatar: participant.user.avatar
+          }));
+
+        return {
+          questionText: question.questionText,
+          options: question.options,
+          correctAnswer: question.correctAnswer,
+          explanation: question.explanation,
+          submittedAnswer: questionAnswers.get(userId) || null,
+          correctPlayers
+        };
+      });
 
       socketIds.forEach((socketId) => {
         io.to(socketId).emit('game_over', { leaderboard, summary });

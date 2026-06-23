@@ -8,6 +8,7 @@ interface Player {
   isHost: boolean;
   score: number;
   isOnline: boolean;
+  avatar?: string | null;
 }
 
 interface Question {
@@ -32,6 +33,11 @@ export interface QuizSummaryItem {
   correctAnswer: string;
   explanation: string;
   submittedAnswer: string | null;
+  correctPlayers: {
+    userId: string;
+    username: string;
+    avatar?: string | null;
+  }[];
 }
 
 interface SocketState {

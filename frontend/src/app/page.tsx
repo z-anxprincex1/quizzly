@@ -4,6 +4,7 @@ import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { loginAsGuest } from './actions/auth';
 import { User, Loader2 } from 'lucide-react';
+import { AvatarCustomizer } from '@/components/AvatarCustomizer';
 
 function RootAuthPageContent() {
   const router = useRouter();
@@ -40,28 +41,29 @@ function RootAuthPageContent() {
   };
 
   return (
-    <main className="min-h-screen bg-black flex items-center justify-center p-6 font-mono text-white">
-      <div className="w-full max-w-sm">
+    <main className="min-h-screen bg-black flex items-center justify-center px-4 py-3 sm:p-6 font-mono text-white overflow-y-auto">
+      <div className="w-full max-w-[20rem] sm:max-w-sm">
         
         {/* Logo and Minimal Branding */}
-        <div className="text-center mb-10">
-          <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white mb-2 lowercase pb-3" style={{ textShadow: '4px 4px 0 #a78bfa' }}>
+        <div className="text-center mb-3 sm:mb-8">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter text-white mb-1 lowercase pb-1 sm:pb-3" style={{ textShadow: '3px 3px 0 #a78bfa' }}>
             quizzly!
           </h1>
         </div>
 
-        {/* Input Card */}
-        <div className="border border-white/10 bg-[#09090b] p-6 rounded-none shadow-none">
-          
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-200 text-xs p-3 mb-4 flex items-center gap-2">
-              <span className="font-bold">Error:</span> {error}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} className="space-y-1.5 sm:space-y-4">
+          <AvatarCustomizer />
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Input Card */}
+          <div className="border border-white/10 bg-[#09090b] p-3 sm:p-6 rounded-none shadow-none space-y-2 sm:space-y-4">
+            
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-200 text-xs p-3 mb-4 flex items-center gap-2">
+                <span className="font-bold">Error:</span> {error}
+              </div>
+            )}
             <div>
-              <label htmlFor="username" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+              <label htmlFor="username" className="block text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 sm:mb-2">
                 username
               </label>
               <div className="relative flex items-center">
@@ -73,14 +75,14 @@ function RootAuthPageContent() {
                   name="username"
                   id="username"
                   placeholder="goofy nickname (optional)..."
-                  className="w-full bg-black border border-white/10 py-2.5 pl-9 pr-3 text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-white transition-all rounded-none"
+                  className="w-full bg-black border border-white/10 py-2 pl-8 sm:py-2.5 sm:pl-9 pr-3 text-[11px] sm:text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-white transition-all rounded-none"
                   maxLength={25}
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="lobbyCode" className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+              <label htmlFor="lobbyCode" className="block text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 sm:mb-2">
                 Lobby Code (Optional)
               </label>
               <input
@@ -90,14 +92,14 @@ function RootAuthPageContent() {
                 value={lobbyCode}
                 onChange={(e) => setLobbyCode(e.target.value)}
                 placeholder="paste lobby code..."
-                className="w-full bg-black border border-white/10 py-2.5 px-3 text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-white transition-all rounded-none"
+                className="w-full bg-black border border-white/10 py-2 sm:py-2.5 px-3 text-[11px] sm:text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-white transition-all rounded-none"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-white text-black hover:bg-gray-200 disabled:bg-white/10 disabled:text-gray-600 py-2.5 text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer rounded-none mt-2"
+              className="w-full bg-white text-black hover:bg-gray-200 disabled:bg-white/10 disabled:text-gray-600 py-2 sm:py-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer rounded-none mt-1 sm:mt-2"
             >
               {loading ? (
                 <>
@@ -105,12 +107,12 @@ function RootAuthPageContent() {
                   {lobbyCode.trim() ? 'Joining Game...' : 'Creating Session...'}
                 </>
               ) : (
-                lobbyCode.trim() ? 'Join the game' : 'Create a new session'
+                lobbyCode.trim() ? 'Join the game' : '+ new session'
               )}
             </button>
-          </form>
 
-        </div>
+          </div>
+        </form>
 
 
 
